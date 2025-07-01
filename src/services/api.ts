@@ -122,3 +122,10 @@ export const fetchFriendsWithStatus = async (token: string) => {
   });
   return await response.json();
 };
+
+export const fetchUserProfile = async (username: string, token: string) => {
+  const res = await fetch(`${BACKEND_URL}/api/profile/${encodeURIComponent(username)}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return await res.json();
+};

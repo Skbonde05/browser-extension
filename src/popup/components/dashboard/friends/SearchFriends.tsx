@@ -1,7 +1,7 @@
-// src/popup/components/dashboard/SearchFriends.tsx
 import React, { useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { searchUsers, getFriendshipStatus, sendFriendRequest, cancelFriendRequest } from '../../../../services/api';
+import UserProfile from './UserProfile';
 
 interface UserResult {
   id: string;
@@ -15,6 +15,7 @@ const SearchFriends: React.FC = () => {
   const [results, setResults] = useState<UserResult[]>([]);
   const [statuses, setStatuses] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [selectedUsername, setSelectedUsername] = useState<string | null>(null);
 
   if (!user) {
     return <div className="text-center text-gray-400 py-4">Please log in to search for friends.</div>;
@@ -53,6 +54,20 @@ const SearchFriends: React.FC = () => {
     setStatuses(s => ({ ...s, [id]: 'none' }));
   };
 
+  if (selectedUsername) {
+    const selectedUser = results.find(u => u.username === selectedUsername);
+    const friendStatus = selectedUser ? statuses[selectedUser.id] : undefined;
+    return (
+      <UserProfile
+        username={selectedUsername}
+        friendStatus={friendStatus}
+        userId={selectedUser?.id}
+        onBack={() => setSelectedUsername(null)}
+        onStatusChange={status => setStatuses(s => selectedUser?.id ? { ...s, [selectedUser.id]: status } : s)}
+      />
+    );
+  }
+
   return (
     <div>
       <form onSubmit={handleSearch} className="flex mb-4">
@@ -75,16 +90,20 @@ const SearchFriends: React.FC = () => {
         {loading && <div className="text-center text-gray-500 py-4">Searching...</div>}
         {!loading && results.length === 0 && <div className="text-center text-gray-400 py-4">No users found.</div>}
         {results.map(userRes => (
-          <div key={userRes.id} className="flex items-center justify-between border-b py-2">
+          <div
+            key={userRes.id}
+            className="flex items-center justify-between border-b py-2 cursor-pointer hover:bg-blue-50 transition rounded"
+            onClick={() => setSelectedUsername(userRes.username)}
+          >
             <div>
-              <div className="font-medium">{userRes.displayName || userRes.username}</div>
+              <div className="font-medium text-blue-700">{userRes.displayName || userRes.username}</div>
               <div className="text-xs text-gray-500">@{userRes.username}</div>
             </div>
             <div>
               {statuses[userRes.id] === 'none' && (
                 <button
                   className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  onClick={() => handleAdd(userRes.id)}
+                  onClick={e => { e.stopPropagation(); handleAdd(userRes.id); }}
                 >
                   Add
                 </button>
@@ -92,7 +111,7 @@ const SearchFriends: React.FC = () => {
               {statuses[userRes.id] === 'pending_sent' && (
                 <button
                   className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                  onClick={() => handleCancel(userRes.id)}
+                  onClick={e => { e.stopPropagation(); handleCancel(userRes.id); }}
                 >
                   Cancel Request
                 </button>
