@@ -26,6 +26,7 @@ import NotificationPage from '../pages/NotificationPage';
 import AboutPage from '../pages/AboutPage';
 import HelpPage from '../pages/HelpPage';
 import PrivacyPage from '../pages/PrivacyPage';
+import { MessageProvider } from '../context/MessageContext';
 
 const AppRouter: React.FC = () => {
   const { user, loading } = useAuth();
@@ -54,7 +55,9 @@ const AppRouter: React.FC = () => {
         {user && (
           <Route path="/*" element={
             <FriendsProvider>
-              <AuthenticatedApp />
+              <MessageProvider>
+                <AuthenticatedApp />
+              </MessageProvider>
             </FriendsProvider>
           } />
         )}

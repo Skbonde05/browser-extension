@@ -86,10 +86,10 @@ export async function publishActiveTab() {
         type: 'active_tab_update',
         userId,
         tab: {
-            id: activeTab[0].id,
+            id: activeTab[0]?.id,
             userId,
             // title: activeTab[0].title,
-            url: activeTab[0].url ? getMainDomain(activeTab[0].url) : '',
+            url: activeTab[0]?.url ? getMainDomain(activeTab[0].url) : '',
         }
     }))
 }

@@ -165,7 +165,7 @@ export const flushAnalytics = async (token: string) => {
 };
 
 export async function fetchHourlyPresence(token: string, days = 7) {
-  const res = await fetch(`http://localhost:3000/api/analytics/presence/hourly?days=${days}`, {
+  const res = await fetch(`${BACKEND_URL}/api/analytics/presence/hourly?days=${days}`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return res.json();
@@ -199,4 +199,34 @@ export const fetchUserPosition = async (token: string, userId: string) => {
     headers: { Authorization: `Bearer ${token}` }
   });
   return await res.json();
+};
+
+// Conversation APIs
+export const getUserConversations = async (token: string) => {
+  const response = await fetch(`${BACKEND_URL}/api/conversation`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return await response.json();
+};
+
+export const getConversationMessages = async (conversationId: string, token: string, limit = 50, cursor?: string) => {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (cursor) params.append('cursor', cursor);
+  
+  const response = await fetch(`${BACKEND_URL}/api/conversation/${conversationId}/messages?${params}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return await response.json();
+};
+
+export const sendMessage = async (data: { conversationId?: string, receiverId?: string, content: string }, token: string) => {
+  const response = await fetch(`${BACKEND_URL}/api/conversation/send`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(data)
+  });
+  return await response.json();
 };
