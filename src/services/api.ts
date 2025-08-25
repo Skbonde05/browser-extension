@@ -230,3 +230,58 @@ export const sendMessage = async (data: { conversationId?: string, receiverId?: 
   });
   return await response.json();
 };
+
+export const acceptConversationInvite = async (conversationId: string, token: string) => {
+  const response = await fetch(`${BACKEND_URL}/api/conversation/${conversationId}/accept`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return await response.json();
+};
+
+export const rejectConversationInvite = async (conversationId: string, token: string) => {
+  const response = await fetch(`${BACKEND_URL}/api/conversation/${conversationId}/reject`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return await response.json();
+};
+
+export const startConversation = async (receiverId: string, token: string) => {
+  try {
+    const conversationsRes = await getUserConversations(token);
+    
+    if (conversationsRes.success) {
+      const existingConv = conversationsRes.data.find((conv: any) => 
+        conv.conversation.type === 'DIRECT' && 
+        conv.conversation.participants.some((p: any) => p.user.id === receiverId)
+      );
+      
+      if (existingConv) {
+        console.log('API: Found existing conversation:', {
+          conversationId: existingConv.conversation.id,
+          status: existingConv.status
+        });
+        return {
+          success: true,
+          conversationId: existingConv.conversation.id,
+          exists: true,
+          status: existingConv.status
+        };
+      }
+    }
+
+    return {
+      success: true,
+      conversationId: null,
+      exists: false,
+      receiverId
+    };
+  } catch (error) {
+    console.error('API: Error checking conversation:', error);
+    return {
+      success: false,
+      error: 'Failed to check existing conversations'
+    };
+  }
+};

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useMessage } from '../../context/MessageContext';
-import { FiArrowLeft, FiMoreVertical, FiUser } from 'react-icons/fi';
+import { FiArrowLeft, FiCheck, FiMoreVertical, FiUser, FiX } from 'react-icons/fi';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 
@@ -16,7 +16,9 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
     conversations,
     loadMessages,
     messages,
-    sendMessage
+    sendMessage,
+    acceptMessageRequest,
+    rejectMessageRequest
   } = useMessage();
   const [loading, setLoading] = useState(true);
   
@@ -33,6 +35,23 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
     };
     loadData();
   }, [conversationId, loadMessages]);
+
+  const handleAcceptRequest = async () => {
+    try {
+      await acceptMessageRequest(conversationId);
+    } catch (error) {
+      console.error('Error accepting request:', error);
+    }
+  };
+
+  const handleRejectRequest = async () => {
+    try {
+      await rejectMessageRequest(conversationId);
+      onBack();
+    } catch (error) {
+      console.error('Error rejecting request:', error);
+    }
+  };
 
   if (!conversation) {
     return (
@@ -121,6 +140,37 @@ const ConversationView = ({ conversationId, onBack }: ConversationViewProps) => 
           </button>
         )}
       </div>
+
+      {/* Message Request Banner */}
+      {isPending && (
+        <div className="bg-orange-100 border-b border-orange-200 p-4">
+          <div className="text-center">
+            <h3 className="font-medium text-orange-800 mb-2">Message Request</h3>
+            <p className="text-sm text-orange-700 mb-4">
+              {conv.type === 'GROUP' 
+                ? `You've been invited to join "${name}"`
+                : `${name} wants to send you a message`
+              }
+            </p>
+            <div className="flex space-x-3 justify-center">
+              <button
+                onClick={handleAcceptRequest}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <FiCheck size={16} />
+                <span>Accept</span>
+              </button>
+              <button
+                onClick={handleRejectRequest}
+                className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <FiX size={16} />
+                <span>Decline</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-hidden">

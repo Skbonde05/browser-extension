@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { fetchUserProfile, sendFriendRequest, cancelFriendRequest, acceptFriendRequest, ignoreFriendRequest, getFriendshipStatus, fetchUserPosition } from '../../../services/api';
+import { fetchUserProfile, sendFriendRequest, cancelFriendRequest, acceptFriendRequest, ignoreFriendRequest, getFriendshipStatus, fetchUserPosition, startConversation } from '../../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { FiGithub, FiTwitter, FiLinkedin, FiGlobe, FiCalendar, FiClock, FiUsers, FiMail, FiChevronLeft } from 'react-icons/fi';
+import { FiGithub, FiTwitter, FiLinkedin, FiGlobe, FiCalendar, FiClock, FiUsers, FiMail, FiChevronLeft, FiMessageCircle } from 'react-icons/fi';
 import { FaTelegram, FaSnapchat, FaDiscord, FaInstagram, FaTrophy } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 interface SocialMediaLinks {
   twitter?: string | null;
@@ -48,11 +49,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
   onStatusChange,
 }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [userRank, setUserRank] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [statusObj, setStatusObj] = useState(friendStatus);
   const [userId, setUserId] = useState(propUserId);
+  const [startingConversation, setStartingConversation] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -144,6 +147,39 @@ const UserProfile: React.FC<UserProfileProps> = ({
     onStatusChange && onStatusChange({ status: 'none' });
   };
 
+  const handleStartConversation = async () => {
+    if (!userId || !user || startingConversation) return;
+    
+    setStartingConversation(true);
+    try {
+      const response = await startConversation(userId, user.token);
+      
+      if (response.success) {
+        if (response.exists && response.conversationId) {
+          navigate('/inbox', { 
+            state: { 
+              selectedConversationId: response.conversationId 
+            }
+          });
+        } else {
+          navigate('/inbox', { 
+            state: { 
+              newConversation: {
+                receiverId: userId,
+                receiverName: profile?.displayName || profile?.username,
+                receiverUsername: profile?.username
+              }
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error starting conversation:', error);
+    } finally {
+      setStartingConversation(false);
+    }
+  };
+
   const formatDuration = (seconds: number) => {
     const hours = seconds / 3600;
     if (hours < 1) return `${Math.round(hours * 60)}m`;
@@ -231,6 +267,19 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
         {/* Friend Action Buttons */}
         <div className="mt-3 flex space-x-2">
+          <button
+            onClick={handleStartConversation}
+            disabled={startingConversation}
+            className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center space-x-1 disabled:opacity-50"
+          >
+            {startingConversation ? (
+              <div className="animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-white"></div>
+            ) : (
+              <FiMessageCircle size={14} />
+            )}
+            <span>{startingConversation ? 'Opening...' : 'Message'}</span>
+          </button>
+
           {statusObj?.status === 'friends' && (
             <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium flex items-center space-x-1">
               <FiUsers size={14} />

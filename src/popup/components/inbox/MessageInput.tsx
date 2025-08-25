@@ -74,6 +74,7 @@ const MessageInput = ({ onSend, disabled = false }: MessageInputProps) => {
               ? 'bg-blue-600 text-white hover:bg-blue-700'
               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
           }`}
+          style={{ marginBottom: '8px' }}
         >
           {sending ? (
             <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-current"></div>

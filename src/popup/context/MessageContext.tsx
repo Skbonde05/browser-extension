@@ -74,6 +74,8 @@ interface MessageContextType {
     data?: any;
     message?: string;
   }>;
+  acceptMessageRequest: (conversationId: string) => Promise<void>;
+  rejectMessageRequest: (conversationId: string) => Promise<void>;
 }
 
 const MessageContext = createContext<MessageContextType | undefined>(undefined);
@@ -205,6 +207,33 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   }, [user, loadConversations, loadMessages]);
 
+  const acceptMessageRequest = useCallback(async (conversationId: string) => {
+    if (!user) return;
+    
+    try {
+      const { acceptConversationInvite } = await import('../../services/api');
+      const response = await acceptConversationInvite(conversationId, user.token);
+      if (response.success) {
+        await loadConversations();
+      }
+    } catch (error) {
+      console.error('Error accepting message request:', error);
+    }
+  }, [user, loadConversations]);
+
+  const rejectMessageRequest = useCallback(async (conversationId: string) => {
+    if (!user) return;
+    
+    try {
+      const { rejectConversationInvite } = await import('../../services/api');
+      const response = await rejectConversationInvite(conversationId, user.token);
+      if (response.success) {
+        setConversations(prev => prev.filter(conv => conv.conversation.id !== conversationId));
+      }
+    } catch (error) {
+      console.error('Error rejecting message request:', error);
+    }
+  }, [user]);
   
   // Handle incoming messages via WebSocket
   const handleIncomingMessage = useCallback((message: Message) => {
@@ -274,7 +303,9 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         loadConversations,
         loadMessages,
         pendingCount,
-        sendMessage
+        sendMessage,
+        acceptMessageRequest,
+        rejectMessageRequest
     }}>
         {children}
     </MessageContext.Provider>
