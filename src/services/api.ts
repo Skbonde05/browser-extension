@@ -428,3 +428,55 @@ export const checkEmailVerification = async (email: string) => {
     throw error;
   }
 };
+
+// Forgot Password APIs
+export const requestForgotPasswordOTP = async (identifier: string) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/forgot-password/request-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ identifier }),
+    });
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Request forgot password OTP error:', error);
+    throw error;
+  }
+};
+
+export const verifyForgotPasswordOTP = async (identifier: string, otp: string) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/forgot-password/verify-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ identifier, otp }),
+    });
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Verify forgot password OTP error:', error);
+    throw error;
+  }
+};
+
+export const resetPassword = async (identifier: string, newPassword: string, confirmPassword: string) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/forgot-password/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ identifier, newPassword, confirmPassword }),
+    });
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Reset password error:', error);
+    throw error;
+  }
+};

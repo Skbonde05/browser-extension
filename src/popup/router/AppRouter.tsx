@@ -11,6 +11,9 @@ import WelcomeScreen from '../components/welcome/WelcomeScreen';
 import LoginPage from '../pages/LoginPage';
 import SignupPage from '../pages/SignupPage';
 import EmailVerificationPage from '../pages/EmailVerificationPage';
+import ForgotPasswordPage from '../pages/ForgotPassword/ForgotPasswordPage';
+import ForgotPasswordOTPPage from '../pages/ForgotPassword/ForgotPasswordOTPPage';
+import PasswordResetPage from '../pages/ForgotPassword/PasswordResetPage';
 
 // Main Pages
 import HomePage from '../pages/HomePage';
@@ -44,12 +47,33 @@ const AppRouter: React.FC = () => {
   React.useEffect(() => {
     if (!user && !loading) {
       const pendingEmail = localStorage.getItem('pendingVerificationEmail');
+      const forgotPasswordStep = localStorage.getItem('forgotPasswordStep');
       const currentHash = window.location.hash;
       
+      // Handle email verification flow
       if (pendingEmail && (currentHash === '#/' || currentHash === '' || currentHash === '#')) {
         setTimeout(() => {
           if (window.location.hash === '#/' || window.location.hash === '' || window.location.hash === '#') {
             window.location.hash = '#/email-verification';
+          }
+        }, 200);
+      }
+      
+      // Handle forgot password flow restoration
+      if (forgotPasswordStep && (currentHash === '#/' || currentHash === '' || currentHash === '#')) {
+        setTimeout(() => {
+          if (window.location.hash === '#/' || window.location.hash === '' || window.location.hash === '#') {
+            switch (forgotPasswordStep) {
+              case 'verify-otp':
+                window.location.hash = '#/forgot-password/verify-otp';
+                break;
+              case 'reset-password':
+                window.location.hash = '#/forgot-password/reset';
+                break;
+              default:
+                window.location.hash = '#/forgot-password';
+                break;
+            }
           }
         }, 200);
       }
@@ -74,6 +98,9 @@ const AppRouter: React.FC = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/email-verification" element={<EmailVerificationPage onVerificationSuccess={handleEmailVerified}/>} />
             <Route path="/signup" element={<SignupPage verifiedEmail={verifiedEmail} />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/forgot-password/verify-otp" element={<ForgotPasswordOTPPage />} />
+            <Route path="/forgot-password/reset" element={<PasswordResetPage />} />
           </>
         )}
         
