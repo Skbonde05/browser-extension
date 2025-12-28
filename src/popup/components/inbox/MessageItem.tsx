@@ -1,3 +1,5 @@
+import Linkify from 'linkify-react';
+
 interface MessageItemProps {
   message: any;
   isOwn: boolean;
@@ -32,8 +34,17 @@ const MessageItem = ({
             {message.sender.displayName || message.sender.username}
           </div>
         )}
-        
-        <div className="text-sm">{message.content}</div>
+        <div className="text-sm break-words">
+            <Linkify
+            options={{
+               className: 'underline',
+              target: '_blank',
+              rel: 'noopener noreferrer',
+            }}
+          >
+            {message.content}
+          </Linkify>
+        </div>
         
         <div className={`flex items-center justify-between mt-2 ${
           isOwn ? 'flex-row-reverse' : 'flex-row'
