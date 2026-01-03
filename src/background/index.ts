@@ -26,6 +26,7 @@ function stopReconnectLoop() {
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Extension installed');
+   chrome.storage.local.set({ hasSeenOnboarding: false });
   initializeWebSocket();
   startReconnectLoop();
 });

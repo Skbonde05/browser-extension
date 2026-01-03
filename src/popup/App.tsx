@@ -1,9 +1,21 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import AppRouter from './router/AppRouter';
+import Onboarding from './components/Onboarding';
 
 const App: React.FC = () => {
+  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    chrome.storage.local.get(['hasSeenOnboarding'], (res) => {
+      setShowOnboarding(!res?.hasSeenOnboarding);
+    });
+  }, []);
+
+  // Avoid flicker while loading storage
+  if (showOnboarding === null) return null;
+
   return (
     <AuthProvider>
       <Toaster 
@@ -31,8 +43,17 @@ const App: React.FC = () => {
           },
         }}
       />
-      
-      <AppRouter />
+
+      {showOnboarding ? (
+        <Onboarding
+          onFinish={() => {
+            chrome.storage.local.set({ hasSeenOnboarding: true });
+            setShowOnboarding(false);
+          }}
+        />
+      ) : (
+        <AppRouter />
+      )}
     </AuthProvider>
   );
 };
